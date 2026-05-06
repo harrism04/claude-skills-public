@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{CLIENT_NAME}} — WhatsApp Demo</title>
+<style>
+/* ═══════════════════════════════════════════════════
+   BRAND & WA TOKENS — edit BRAND tokens only
+═══════════════════════════════════════════════════ */
+:root {
+  /* BRAND — replace per client */
+  --brand-primary:   #003DA5;
+  --brand-secondary: #D71920;
+  --brand-text-on:   #ffffff;
+
+  /* WhatsApp — do NOT change */
+  --wa-teal:         #008069;
+  --wa-teal-dark:    #025144;
+  --wa-bubble-in:    #ffffff;
+  --wa-bubble-out:   #d9fdd3;
+  --wa-bg:           #efeae2;
+  --wa-text:         #111b21;
+  --wa-text-2:       #667781;
+  --wa-divider:      #e9edef;
+  --wa-tick-grey:    #667781;
+  --wa-tick-blue:    #53bdeb;
+  --wa-link:         #027eb5;
+  --wa-cta-border:   #e0e0e0;
+  --wa-bar-bg:       #f0f2f5;
+
+  --shell-bg:        #1c1c1e;
+  --shell-border:    #3a3a3c;
+  --shell-radius:    44px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  background: #f0f2f5; color: var(--wa-text); min-height: 100vh;
+}
+
+/* ── Layout ── */
+.demo-container { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── Control Panel (left) ── */
+.control-panel {
+  width: 420px; min-width: 420px; background: #fff;
+  border-right: 1px solid var(--wa-divider);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.control-header { background: var(--brand-primary); color: var(--brand-text-on); padding: 18px 22px 16px; }
+.control-header h1 { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.control-header p  { font-size: 12px; opacity: 0.75; margin-top: 3px; }
+.powered-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 10px; background: rgba(255,255,255,0.14);
+  padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 600;
+}
+
+.market-tabs { display: flex; border-bottom: 1px solid var(--wa-divider); }
+.market-tab {
+  flex: 1; padding: 11px 8px; text-align: center;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border-bottom: 3px solid transparent; transition: all 0.2s;
+}
+.market-tab.active { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
+.market-tab:not(.active) { color: #9ab; }
+
+.customer-profile {
+  padding: 12px 18px; border-bottom: 1px solid var(--wa-divider);
+  display: flex; align-items: center; gap: 12px; background: #f8faff;
+}
+.cp-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--brand-primary); color: var(--brand-text-on);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700; flex-shrink: 0;
+}
+.cp-name  { font-size: 14px; font-weight: 700; color: var(--wa-text); }
+.cp-phone { font-size: 12px; color: var(--wa-text-2); margin-top: 1px; }
+.cp-tags  { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+.cp-tag   { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.cp-tag.segment { background: #e8f0fe; color: var(--brand-primary); }
+.cp-tag.product { background: #fff3e0; color: #e65100; }
+
+.steps-list { flex: 1; overflow-y: auto; padding: 14px; }
+.step-card {
+  background: #f8f9fa; border: 1px solid #e8e8e8; border-radius: 12px;
+  padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; position: relative;
+}
+.step-card:hover  { border-color: var(--brand-primary); background: #f0f4ff; }
+.step-card.sent   { border-color: #4caf50; background: #f0faf0; }
+.step-card.active { border-color: var(--brand-primary); background: #e8f0fe; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-size: 11px; font-weight: 700;
+  background: var(--brand-primary); color: var(--brand-text-on); margin-right: 7px;
+}
+.step-card.sent .step-num { background: #4caf50; }
+.step-title { display: inline; font-size: 13px; font-weight: 600; }
+.step-meta  { font-size: 10px; color: var(--wa-text-2); margin-top: 5px; }
+.step-meta span { background: #eee; padding: 2px 7px; border-radius: 4px; margin-right: 4px; }
+.step-meta span.cat-utility        { background: #e8f5e9; color: #2e7d32; }
+.step-meta span.cat-marketing      { background: #fff3e0; color: #e65100; }
+.step-meta span.cat-authentication { background: #fce4ec; color: #ad1457; }
+.step-meta span.cat-service        { background: #e1f5fe; color: #0277bd; }
+.step-meta span.cat-reply          { background: #f3e5f5; color: #6a1b9a; }
+.step-meta span.cat-system         { background: #eceff1; color: #455a64; }
+.step-trigger { font-size: 10px; color: #6a1b9a; background: #f3e5f9; padding: 2px 7px; border-radius: 4px; margin-top: 5px; display: inline-block; }
+.step-trigger::before { content: "⚡ "; }
+.step-status { position: absolute; top: 13px; right: 13px; font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 10px; }
+.step-card.sent   .step-status { background: #4caf50; color: #fff; }
+.step-card.active .step-status { background: var(--brand-primary); color: var(--brand-text-on); }
+.step-preview { font-size: 11px; color: var(--wa-text-2); margin-top: 6px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.send-btn {
+  margin: 0 14px 10px; padding: 13px; border: none; border-radius: 10px;
+  background: var(--wa-teal); color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.send-btn:hover   { background: var(--wa-teal-dark); }
+.send-btn:disabled{ background: #ccc; cursor: not-allowed; }
+.send-btn.complete{ background: var(--brand-primary); }
+.send-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.reset-btn {
+  margin: 0 14px 14px; padding: 9px; border: 1px solid var(--wa-divider);
+  border-radius: 10px; background: #fff; color: var(--wa-text-2);
+  font-size: 12px; cursor: pointer; text-align: center; transition: all 0.15s;
+}
+.reset-btn:hover { background: #f5f5f5; color: var(--wa-text); }
+
+/* ── Preview panel (right) ── */
+.preview-panel {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #e8eaf6 0%, #e0f2f1 100%);
+  position: relative; overflow: hidden;
+}
+.preview-panel::before {
+  content:''; position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(0,128,105,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,128,105,0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Phone shell ── */
+.phone-shell {
+  position: relative; z-index: 1;
+  width: 390px; height: 780px;
+  background: var(--shell-bg);
+  border-radius: var(--shell-radius);
+  border: 2px solid var(--shell-border);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 30px 80px rgba(0,0,0,0.45),
+    0 4px 20px rgba(0,0,0,0.3);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.phone-notch {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 34px; background: var(--shell-bg);
+  border-radius: 20px; z-index: 20;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ── Status bar ── */
+.wa-status-bar {
+  height: 52px; background: var(--wa-teal-dark);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 24px 8px; flex-shrink: 0;
+}
+.status-time { font-size: 12px; font-weight: 700; color: #fff; letter-spacing: 0.2px; }
+.status-icons { display: flex; align-items: center; gap: 5px; }
+.status-icons svg { width: 14px; height: 14px; fill: #fff; }
+
+/* ── WA topbar ── */
+.wa-topbar {
+  background: var(--wa-teal);
+  padding: 8px 14px 10px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.wa-back-arrow { color: #fff; font-size: 22px; cursor: pointer; flex-shrink: 0; line-height: 1; margin-right: -2px; }
+.wa-biz-avatar {
+  width: 38px; height: 38px; border-radius: 50%; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: var(--brand-primary); flex-shrink: 0;
+}
+.wa-biz-info { flex: 1; min-width: 0; }
+.wa-biz-name {
+  font-size: 15px; font-weight: 600; color: #fff;
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wa-verified-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 50%; background: #53bdeb; flex-shrink: 0;
+}
+.wa-verified-badge svg { width: 9px; height: 9px; fill: #fff; }
+.wa-biz-sub { font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 1px; }
+.wa-topbar-icons { display: flex; gap: 18px; flex-shrink: 0; }
+.wa-topbar-icons svg { width: 20px; height: 20px; fill: #fff; cursor: pointer; opacity: 0.9; }
+
+/* ── Chat area ── */
+.wa-chat {
+  flex: 1; overflow-y: auto; padding: 10px 12px 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  background-color: var(--wa-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cg fill='%23c8bfb0' opacity='0.35'%3E%3Cpath d='M30 10Q38 20 30 28Q22 20 30 10zm60 0Q68 20 60 28Q52 20 60 10zm60 0Q128 20 120 28Q112 20 120 10zm60 0Q188 20 180 28Q172 20 180 10zm60 0Q248 20 240 28Q232 20 240 10zm-210 40Q78 60 70 68Q62 60 70 50zm60 0Q138 60 130 68Q122 60 130 50zm60 0Q198 60 190 68Q182 60 190 50zm60 0Q258 60 250 68Q242 60 250 50zm-240 40Q38 100 30 108Q22 100 30 90zm60 0Q98 100 90 108Q82 100 90 90zm60 0Q158 100 150 108Q142 100 150 90zm60 0Q218 100 210 108Q202 100 210 90zm60 0Q278 100 270 108Q262 100 270 90zm-210 40Q78 140 70 148Q62 140 70 130zm60 0Q138 140 130 148Q122 140 130 130zm60 0Q198 140 190 148Q182 140 190 130zm60 0Q258 140 250 148Q242 140 250 130zm-240 40Q38 180 30 188Q22 180 30 170zm60 0Q98 180 90 188Q82 180 90 170zm60 0Q158 180 150 188Q142 180 150 170zm60 0Q218 180 210 188Q202 180 210 170zm60 0Q278 180 270 188Q262 180 270 170z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.wa-chat::-webkit-scrollbar { width: 4px; }
+.wa-chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+/* Date divider */
+.wa-date-divider {
+  align-self: center;
+  background: rgba(255,255,255,0.85); color: #54656f;
+  padding: 4px 12px; border-radius: 8px; font-size: 11.5px;
+  margin: 6px 0; box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+}
+
+/* ── MESSAGE BUBBLES ── */
+.wa-msg-wrap { display: flex; flex-direction: column; margin: 1px 0; animation: msgIn 0.18s ease-out; }
+@keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.wa-msg-wrap.in  { align-items: flex-start; padding-right: 48px; }
+.wa-msg-wrap.out { align-items: flex-end;   padding-left:  48px; }
+
+.wa-bubble {
+  position: relative; max-width: 100%;
+  border-radius: 8px; font-size: 13.5px; line-height: 1.45;
+  color: var(--wa-text); word-break: break-word;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+/* Incoming: white, tail top-left */
+.wa-bubble.in {
+  background: var(--wa-bubble-in);
+  border-top-left-radius: 2px;
+  padding: 7px 10px 22px;
+}
+.wa-bubble.in::before {
+  content:''; position:absolute; top:0; left:-8px;
+  width:0; height:0;
+  border-top: 8px solid var(--wa-bubble-in);
+  border-left: 8px solid transparent;
+}
+/* Outgoing: green, tail top-right */
+.wa-bubble.out {
+  background: var(--wa-bubble-out);
+  border-top-right-radius: 2px;
+  padding: 7px 10px 22px;
+}
+.wa-bubble.out::before {
+  content:''; position:absolute; top:0; right:-8px;
+  width:0; height:0;
+  border-top: 8px solid var(--wa-bubble-out);
+  border-right: 8px solid transparent;
+}
+
+.bubble-sender {
+  font-size: 12px; font-weight: 700; color: var(--brand-primary);
+  margin-bottom: 3px; display: flex; align-items: center; gap: 4px;
+}
+.bubble-sender .v-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 13px; height: 13px; border-radius: 50%; background: #53bdeb;
+}
+.bubble-sender .v-badge svg { width: 8px; height: 8px; fill: #fff; }
+
+.bubble-body { white-space: pre-wrap; font-size: 13.5px; }
+.bubble-footer { font-size: 11px; color: var(--wa-text-2); margin-top: 5px; font-style: italic; }
+
+/* Time + ticks row */
+.bubble-meta {
+  position: absolute; bottom: 5px; right: 9px;
+  display: flex; align-items: center; gap: 3px;
+  font-size: 11px; color: var(--wa-text-2); white-space: nowrap;
+}
+.ticks { display: flex; }
+.tick  { font-size: 12px; color: var(--wa-tick-grey); line-height: 1; }
+.tick.read { color: var(--wa-tick-blue); }
+
+/* CTA block — attached beneath bubble */
+.wa-cta-block {
+  background: var(--wa-bubble-in);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  margin-top: 1px; width: 100%;
+}
+.wa-cta-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--wa-cta-border);
+  color: var(--wa-link); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s; user-select: none;
+}
+.wa-cta-btn:hover { background: rgba(2,126,181,0.07); }
+.wa-cta-btn svg { width: 13px; height: 13px; fill: var(--wa-link); }
+
+/* SMS OTP bubble */
+.wa-sms-bubble {
+  background: #fffde7; border-left: 3px solid #f9a825;
+  border-radius: 0 8px 8px 8px;
+  padding: 8px 10px 22px; position: relative;
+  font-size: 13px; line-height: 1.5;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.08); max-width: 100%;
+}
+.sms-label { font-size: 10.5px; font-weight: 700; color: #f57f17; margin-bottom: 4px; }
+
+/* System event */
+.wa-system-event {
+  align-self: center;
+  background: rgba(255,255,255,0.85); color: #54656f;
+  padding: 4px 14px; border-radius: 8px; font-size: 11.5px;
+  margin: 6px 0; box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+}
+
+/* Typing indicator */
+.wa-typing-wrap { display: none; align-items: flex-start; padding-right: 48px; margin: 1px 0; }
+.wa-typing-wrap.show { display: flex; }
+.wa-typing-bubble {
+  background: var(--wa-bubble-in); border-radius: 8px; border-top-left-radius: 2px;
+  padding: 10px 14px; display: flex; gap: 4px; align-items: center;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  position: relative;
+}
+.wa-typing-bubble::before {
+  content:''; position:absolute; top:0; left:-8px;
+  border-top: 8px solid var(--wa-bubble-in);
+  border-left: 8px solid transparent;
+}
+.t-dot { width: 7px; height: 7px; border-radius: 50%; background: #b0bec5; animation: tdot 1.4s infinite; }
+.t-dot:nth-child(2) { animation-delay: 0.2s; }
+.t-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,57%,100%{transform:translateY(0)} 29%{transform:translateY(-5px);background:#90a4ae} }
+
+/* ── Bottom input bar (decorative) ── */
+.wa-input-bar {
+  background: var(--wa-bar-bg); padding: 8px 10px;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.wa-input-pill {
+  flex: 1; background: #fff; border-radius: 22px;
+  padding: 9px 14px; font-size: 13px; color: #aaa;
+  display: flex; align-items: center; gap: 8px;
+}
+.wa-input-pill svg { width: 19px; height: 19px; fill: #54656f; margin-left: auto; }
+.wa-input-icon svg { width: 22px; height: 22px; fill: #54656f; cursor: pointer; }
+.wa-fab {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--wa-teal); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.wa-fab svg { width: 20px; height: 20px; fill: #fff; margin-left: 2px; }
+
+/* Home bar */
+.phone-home-bar {
+  height: 28px; background: var(--shell-bg);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.home-indicator { width: 130px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 3px; }
+
+/* ── WhatsApp Flow overlay ── */
+.wa-flow-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+  display: none; align-items: flex-end; z-index: 30;
+  border-radius: var(--shell-radius);
+}
+.wa-flow-overlay.show { display: flex; }
+.wa-flow-sheet {
+  width: 100%; max-height: 88%; background: #fff;
+  border-radius: 18px 18px 0 0; display: flex; flex-direction: column;
+  animation: sheetUp 0.28s cubic-bezier(0.32,0.72,0,1);
+}
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.flow-handle { width:40px; height:4px; background:#ddd; border-radius:3px; margin:10px auto 0; }
+.flow-hdr {
+  display: flex; align-items: center; padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--wa-divider);
+}
+.flow-hdr-icon {
+  width:32px; height:32px; border-radius:8px;
+  background: var(--brand-primary); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700; margin-right:10px; flex-shrink:0;
+}
+.flow-hdr h3 { flex:1; font-size:15px; font-weight:700; color:var(--wa-text); }
+.flow-close-btn {
+  width:28px; height:28px; border-radius:50%; border:none;
+  background:#f0f0f0; font-size:18px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; color:#666;
+}
+.flow-prog { display:flex; gap:5px; padding:10px 18px; }
+.flow-prog-bar { flex:1; height:3px; border-radius:2px; background:#e0e0e0; transition:background 0.3s; }
+.flow-prog-bar.active { background: var(--wa-teal); }
+.flow-prog-bar.done   { background: #4caf50; }
+.flow-body { flex:1; overflow-y:auto; padding:8px 18px 16px; }
+.flow-field { margin-bottom:16px; }
+.flow-field label { display:block; font-size:11px; font-weight:700; color:var(--wa-text-2); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.4px; }
+.flow-input, .flow-select { width:100%; padding:10px 12px; border:1.5px solid #ddd; border-radius:10px; font-size:14px; color:var(--wa-text); background:#fafafa; outline:none; transition:border-color 0.15s; }
+.flow-input:focus, .flow-select:focus { border-color:var(--wa-teal); }
+.flow-review-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--wa-divider); font-size:13px; }
+.flow-review-row .lbl { color:var(--wa-text-2); }
+.flow-review-row .val { font-weight:600; color:var(--wa-text); max-width:55%; text-align:right; }
+.flow-ftr { padding:12px 18px; border-top:1px solid var(--wa-divider); display:flex; gap:10px; }
+.flow-ftr button { flex:1; padding:12px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; border:none; transition:all 0.2s; }
+.flow-btn-back { background:#f0f0f0; color:#333; }
+.flow-btn-next, .flow-btn-submit { background:var(--wa-teal); color:#fff; }
+.flow-btn-next:hover, .flow-btn-submit:hover { background:var(--wa-teal-dark); }
+</style>
+</head>
+<body>
+
+<div class="demo-container">
+
+  <!-- LEFT: Control Panel -->
+  <div class="control-panel">
+    <div class="control-header">
+      <h1>{{CLIENT_NAME}} — WhatsApp Demo</h1>
+      <p>{{DEMO_SUBTITLE}}</p>
+      <div class="powered-tag">⚡ Powered by 8x8 CPaaS · WhatsApp Business API</div>
+    </div>
+
+    <!-- Delete .market-tabs if single-market -->
+    <div class="market-tabs" id="marketTabs">
+      <div class="market-tab active" data-market="default" onclick="switchMarket('default')">{{MARKET_LABEL}}</div>
+    </div>
+
+    <div class="customer-profile" id="customerProfile"></div>
+    <div class="steps-list" id="stepsList"></div>
+
+    <button class="send-btn" id="sendBtn" onclick="sendNext()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      <span id="sendBtnText">Send Next Message</span>
+    </button>
+    <div class="reset-btn" onclick="resetDemo()">↺ Reset Demo</div>
+  </div>
+
+
+  <!-- RIGHT: Phone + WA Preview -->
+  <div class="preview-panel">
+    <div class="phone-shell">
+      <div class="phone-notch"></div>
+
+      <!-- Status bar -->
+      <div class="wa-status-bar">
+        <span class="status-time" id="statusTime">9:41</span>
+        <div class="status-icons">
+          <svg viewBox="0 0 24 24"><rect x="2" y="14" width="3" height="8"/><rect x="7" y="10" width="3" height="12"/><rect x="12" y="6" width="3" height="16"/><rect x="17" y="2" width="3" height="20" opacity="0.3"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 6C8.62 6 5.58 7.36 3.36 9.57l1.42 1.42A8.94 8.94 0 0 1 12 8c2.76 0 5.24 1.25 6.93 3.22l1.42-1.42A10.93 10.93 0 0 0 12 6zm0 4c-2.21 0-4.21.9-5.66 2.34l1.41 1.41A5.94 5.94 0 0 1 12 12c1.65 0 3.14.67 4.23 1.75l1.41-1.41A7.94 7.94 0 0 0 12 10zm0 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="20" y="10" width="2" height="4" rx="1"/><rect x="3.5" y="8.5" width="13" height="7" rx="1" opacity="0.9"/></svg>
+        </div>
+      </div>
+
+      <!-- WA nav bar -->
+      <div class="wa-topbar">
+        <span class="wa-back-arrow">‹</span>
+        <div class="wa-biz-avatar" id="bizAvatar">{{AVATAR_INITIALS}}</div>
+        <div class="wa-biz-info">
+          <div class="wa-biz-name">
+            {{BUSINESS_NAME}}
+            <span class="wa-verified-badge"><svg viewBox="0 0 10 10"><path d="M4 7L1.5 4.5l.7-.7L4 5.6 7.8 1.8l.7.7z"/></svg></span>
+          </div>
+          <div class="wa-biz-sub">Business Account · Verified</div>
+        </div>
+        <div class="wa-topbar-icons">
+          <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div class="wa-chat" id="waChat">
+        <div class="wa-date-divider">Today</div>
+        <div class="wa-typing-wrap" id="typingWrap">
+          <div class="wa-typing-bubble">
+            <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WA Flow overlay (delete if unused) -->
+      <div class="wa-flow-overlay" id="waFlowOverlay">
+        <div class="wa-flow-sheet">
+          <div class="flow-handle"></div>
+          <div class="flow-hdr">
+            <div class="flow-hdr-icon" id="flowIcon">{{AVATAR_INITIALS}}</div>
+            <h3 id="flowTitle">Application</h3>
+            <button class="flow-close-btn" onclick="closeFlow()">×</button>
+          </div>
+          <div class="flow-prog" id="flowProg"></div>
+          <div class="flow-body" id="flowBody"></div>
+          <div class="flow-ftr" id="flowFtr"></div>
+        </div>
+      </div>
+
+      <!-- Decorative input bar -->
+      <div class="wa-input-bar">
+        <div class="wa-input-icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 14.24A6.943 6.943 0 0 1 12 18a6.943 6.943 0 0 1-4.24-1.76L9.17 14.8A4.944 4.944 0 0 0 12 16c1.08 0 2.09-.35 2.91-.96l1.32 1.2zM8.5 10a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm7 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"/></svg></div>
+        <div class="wa-input-pill">
+          <span>Message</span>
+          <svg viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+        </div>
+        <div class="wa-fab"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></div>
+      </div>
+
+      <div class="phone-home-bar"><div class="home-indicator"></div></div>
+    </div><!-- /phone-shell -->
+  </div><!-- /preview-panel -->
+
+</div><!-- /demo-container -->
+
+<script>
+const BRAND_NAME = "{{BRAND_NAME}}";
+
+// ══════════════════════════════════════════
+// DEMO_DATA — replace per demo
+// Buttons shape: { type: 'reply'|'url', label: 'Text' }
+// ══════════════════════════════════════════
+const DEMO_DATA = {
+  default: {
+    name:         "{{MARKET_LABEL}}",
+    customerName: "{{PERSONA_NAME}}",
+    phone:        "{{PERSONA_PHONE}}",
+    segment:      "{{PERSONA_SEGMENT}}",
+    productOffer: "{{PRODUCT_NAME}}",
+    steps: [
+      {
+        id: 1, title: "Pre-Approval Offer",
+        template: "{{template_name}}", category: "MARKETING", type: "template",
+        trigger: "CRM pre-approval engine flags eligible customer",
+        params: { body: ["{{PERSONA_NAME}}", "{{PRODUCT_NAME}}"] },
+        preview: "Hi {{PERSONA_NAME}},\n\nCongratulations! You've been pre-approved for the *{{PRODUCT_NAME}}*.\n\nTap below to apply — takes under 3 minutes.",
+        footer: "{{BRAND_NAME}}",
+        buttons: [{ type:"reply", label:"Apply Now" }, { type:"reply", label:"Remind Me Later" }]
+      },
+      {
+        id: 2, title: "Customer Taps Apply Now",
+        type: "customer_reply", message: "Apply Now",
+        trigger: "Customer taps quick-reply → triggers WhatsApp Flow",
+        category: "REPLY", triggersFlow: true
+      },
+      {
+        id: 3, title: "Application Received",
+        template: "{{template_confirm}}", category: "UTILITY", type: "template",
+        trigger: "WhatsApp Flow submission received",
+        params: { body: ["{{PERSONA_NAME}}", "REF-2026-001"] },
+        preview: "Thanks {{PERSONA_NAME}}! Your application has been received.\n\nReference: *REF-2026-001*\n\nWe'll verify your identity next.",
+        footer: "{{BRAND_NAME}}"
+      }
+    ]
+  }
+};
+
+// ══════════════════════════════════════════
+// State
+// ══════════════════════════════════════════
+let currentMarket = 'default';
+let currentStep   = 0;
+let sentSteps     = new Set();
+
+// Live clock
+function tickClock() {
+  const el = document.getElementById('statusTime');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+setInterval(tickClock, 10000); tickClock();
+
+function nowTime() {
+  return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+
+// Bold/italic markdown
+function md(text) {
+  return (text||'')
+    .replace(/\*(.*?)\*/g,'<strong>$1</strong>')
+    .replace(/_(.*?)_/g,'<em>$1</em>');
+}
+
+// ══════════════════════════════════════════
+// Render: profile
+// ══════════════════════════════════════════
+function renderProfile() {
+  const d = DEMO_DATA[currentMarket];
+  document.getElementById('customerProfile').innerHTML = `
+    <div class="cp-avatar">${d.customerName[0]}</div>
+    <div class="cp-info">
+      <div class="cp-name">${d.customerName}</div>
+      <div class="cp-phone">${d.phone}</div>
+      <div class="cp-tags">
+        ${d.segment?`<span class="cp-tag segment">${d.segment}</span>`:''}
+        ${d.productOffer?`<span class="cp-tag product">${d.productOffer}</span>`:''}
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// Render: steps list
+// ══════════════════════════════════════════
+function renderSteps() {
+  const steps = DEMO_DATA[currentMarket].steps;
+  const list  = document.getElementById('stepsList');
+  list.innerHTML = '';
+  steps.forEach((step,i) => {
+    const isSent = sentSteps.has(i), isActive = i===currentStep;
+    const card = document.createElement('div');
+    card.className = `step-card${isSent?' sent':''}${isActive?' active':''}`;
+    card.innerHTML = `
+      <span class="step-num">${isSent?'✓':step.id}</span>
+      <span class="step-title">${step.title}</span>
+      ${isActive?'<span class="step-status">Next</span>':(isSent?'<span class="step-status">Sent</span>':'')}
+      <div class="step-meta">
+        <span class="cat-${step.category.toLowerCase()}">${step.category}</span>
+        ${step.template?`<span>${step.template}</span>`:''}
+        ${step.type==='sms_otp'?'<span>8x8 Verify API</span>':''}
+        ${step.type==='customer_reply'?'<span>Customer Action</span>':''}
+      </div>
+      ${step.trigger?`<div class="step-trigger">${step.trigger}</div>`:''}
+      <div class="step-preview">${(step.preview||step.message||'').split('\n')[0].substring(0,72)}</div>`;
+    card.onclick = ()=>{ currentStep=i; renderSteps(); };
+    list.appendChild(card);
+  });
+
+  const btn=document.getElementById('sendBtn'), btnTxt=document.getElementById('sendBtnText');
+  btn.classList.remove('complete'); btn.onclick=sendNext; btn.disabled=false;
+  if (currentStep>=steps.length) {
+    btn.classList.add('complete'); btn.onclick=resetDemo;
+    btnTxt.textContent='✓ Demo Complete — Reset';
+  } else {
+    const s=steps[currentStep];
+    if      (s.type==='customer_reply') btnTxt.textContent=`Simulate: "${s.message}"`;
+    else if (s.type==='sms_otp')        btnTxt.textContent='Send OTP via 8x8 Verify API';
+    else                                btnTxt.textContent=`Send: ${s.title}`;
+  }
+}
+
+// ══════════════════════════════════════════
+// Market switch
+// ══════════════════════════════════════════
+function switchMarket(market) {
+  currentMarket=market; currentStep=0; sentSteps.clear();
+  document.querySelectorAll('.market-tab').forEach(t=>t.classList.toggle('active',t.dataset.market===market));
+  renderProfile(); renderSteps(); resetChat();
+}
+
+function resetChat() {
+  document.getElementById('waChat').innerHTML=`
+    <div class="wa-date-divider">Today</div>
+    <div class="wa-typing-wrap" id="typingWrap">
+      <div class="wa-typing-bubble"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>
+    </div>`;
+}
+function resetDemo() { currentStep=0; sentSteps.clear(); resetChat(); renderSteps(); }
+
+// ══════════════════════════════════════════
+// Message builders
+// ══════════════════════════════════════════
+function buildTemplateBubble(step) {
+  const wrap = document.createElement('div');
+  wrap.className = 'wa-msg-wrap in';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'wa-bubble in';
+  bubble.innerHTML = `
+    <div class="bubble-sender">
+      ${BRAND_NAME}
+      <span class="v-badge"><svg viewBox="0 0 10 10"><path d="M4 7L1.5 4.5l.7-.7L4 5.6 7.8 1.8l.7.7z"/></svg></span>
+    </div>
+    <div class="bubble-body">${md(step.preview||'')}</div>
+    ${step.footer?`<div class="bubble-footer">${step.footer}</div>`:''}
+    <div class="bubble-meta"><span>${nowTime()}</span></div>`;
+  wrap.appendChild(bubble);
+
+  if (step.buttons && step.buttons.length) {
+    const cta = document.createElement('div');
+    cta.className = 'wa-cta-block';
+    step.buttons.forEach(btn=>{
+      const label = typeof btn==='string'?btn:btn.label;
+      const isUrl  = typeof btn==='object'&&btn.type==='url';
+      const b = document.createElement('div');
+      b.className = 'wa-cta-btn';
+      b.innerHTML = isUrl
+        ? `<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>${label}`
+        : label;
+      b.onclick = ()=>handleButtonClick(label);
+      cta.appendChild(b);
+    });
+    wrap.appendChild(cta);
+  }
+  return wrap;
+}
+
+function buildOutBubble(text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'wa-msg-wrap out';
+  const bubble = document.createElement('div');
+  bubble.className = 'wa-bubble out';
+  bubble.innerHTML = `
+    <div class="bubble-body">${md(text)}</div>
+    <div class="bubble-meta">
+      <span>${nowTime()}</span>
+      <span class="ticks"><span class="tick read">✓</span><span class="tick read">✓</span></span>
+    </div>`;
+  wrap.appendChild(bubble);
+  return wrap;
+}
+
+function buildSmsBubble(step) {
+  const wrap = document.createElement('div');
+  wrap.className = 'wa-msg-wrap in';
+  const lines = step.preview.split('\n\n');
+  const body  = lines.length>1?lines.slice(1).join('\n\n'):step.preview;
+  const b = document.createElement('div');
+  b.className = 'wa-sms-bubble';
+  b.innerHTML = `
+    <div class="sms-label">📱 SMS — separate channel · 8x8 Verify API</div>
+    <div style="font-family:monospace;white-space:pre-wrap">${body}</div>
+    <div class="bubble-meta" style="position:absolute;bottom:5px;right:9px;font-size:11px;color:var(--wa-text-2)">${nowTime()}</div>`;
+  wrap.appendChild(b);
+  return wrap;
+}
+
+function buildSystemEvent(step) {
+  const el = document.createElement('div');
+  el.className = 'wa-system-event';
+  el.textContent = '✅ '+step.preview.split('\n')[0];
+  return el;
+}
+
+// ══════════════════════════════════════════
+// Step playback
+// ══════════════════════════════════════════
+function sendNext() {
+  const steps = DEMO_DATA[currentMarket].steps;
+  if (currentStep>=steps.length) return;
+  const step  = steps[currentStep];
+  const chat  = document.getElementById('waChat');
+  const typing= document.getElementById('typingWrap');
+  const isInstant = step.type==='customer_reply'||step.type==='system_event';
+
+  if (!isInstant&&typing) { typing.classList.add('show'); chat.scrollTop=chat.scrollHeight; }
+
+  setTimeout(()=>{
+    if (typing) typing.classList.remove('show');
+    let el;
+    if      (step.type==='system_event')   el=buildSystemEvent(step);
+    else if (step.type==='sms_otp')        el=buildSmsBubble(step);
+    else if (step.type==='customer_reply') el=buildOutBubble(step.message);
+    else                                   el=buildTemplateBubble(step);
+
+    if (typing&&typing.parentNode===chat) chat.insertBefore(el,typing);
+    else chat.appendChild(el);
+    chat.scrollTop=chat.scrollHeight;
+
+    sentSteps.add(currentStep);
+    currentStep++;
+    renderSteps();
+    if (step.triggersFlow) setTimeout(showWhatsAppFlow,420);
+  }, isInstant?80:820);
+}
+
+// ══════════════════════════════════════════
+// Button handler — add custom branches here
+// ══════════════════════════════════════════
+function handleButtonClick(buttonText) {
+  const steps=DEMO_DATA[currentMarket].steps;
+  if (currentStep<steps.length) {
+    const next=steps[currentStep];
+    if (next.type==='customer_reply'&&next.message===buttonText) { sendNext(); return; }
+  }
+  // === PASTE CUSTOM BRANCHES FROM integrations.md HERE ===
+  // if (buttonText.startsWith('Verify Identity')) { window.open('verify.html?ref=REF-001','_blank'); return; }
+  // if (buttonText==='Speak to Agent') { /* moobidesk handoff */ return; }
+
+  const chat=document.getElementById('waChat'), typing=document.getElementById('typingWrap');
+  const el=buildOutBubble(buttonText);
+  if (typing&&typing.parentNode===chat) chat.insertBefore(el,typing);
+  else chat.appendChild(el);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+// ══════════════════════════════════════════
+// WhatsApp Flow overlay
+// Delete this + FLOW_SCREENS if not needed
+// ══════════════════════════════════════════
+const FLOW_SCREENS = {
+  default: [
+    { title:"Personal Details", fields:[
+      {label:"Full Name",  type:"input",  value:"{{PERSONA_NAME}}"},
+      {label:"ID Number",  type:"input",  value:"{{PERSONA_ID}}"},
+      {label:"Employment", type:"select", value:"Employed (Full-time)"}
+    ]},
+    { title:"Review & Submit", review:true }
+  ]
+};
+let flowScreen=0;
+function showWhatsAppFlow() { flowScreen=0; document.getElementById('waFlowOverlay').classList.add('show'); renderFlowScreen(); }
+function closeFlow()         { document.getElementById('waFlowOverlay').classList.remove('show'); }
+function renderFlowScreen() {
+  const screens=FLOW_SCREENS[currentMarket]||FLOW_SCREENS.default;
+  const s=screens[flowScreen], isFirst=flowScreen===0, isLast=flowScreen===screens.length-1;
+  document.getElementById('flowTitle').textContent=s.title;
+  document.getElementById('flowProg').innerHTML=screens.map((_,i)=>
+    `<div class="flow-prog-bar ${i<flowScreen?'done':(i===flowScreen?'active':'')}"></div>`).join('');
+  const body=document.getElementById('flowBody');
+  if (s.review) {
+    const fields=screens.slice(0,-1).flatMap(sc=>sc.fields||[]);
+    body.innerHTML=fields.map(f=>`<div class="flow-review-row"><span class="lbl">${f.label}</span><span class="val">${f.value}</span></div>`).join('');
+  } else {
+    body.innerHTML=(s.fields||[]).map(f=>
+      f.type==='select'
+        ?`<div class="flow-field"><label>${f.label}</label><select class="flow-select"><option>${f.value}</option></select></div>`
+        :`<div class="flow-field"><label>${f.label}</label><input class="flow-input" value="${f.value}"></div>`
+    ).join('');
+  }
+  document.getElementById('flowFtr').innerHTML=`
+    ${!isFirst?'<button class="flow-btn-back" onclick="flowPrev()">Back</button>':''}
+    <button class="${isLast?'flow-btn-submit':'flow-btn-next'}" onclick="${isLast?'flowSubmit()':'flowNext()'}">
+      ${isLast?'Submit Application':'Continue'}</button>`;
+}
+function flowNext()   { flowScreen++; renderFlowScreen(); }
+function flowPrev()   { flowScreen--; renderFlowScreen(); }
+function flowSubmit() { closeFlow(); setTimeout(sendNext,350); }
+
+// Init
+renderProfile();
+renderSteps();
+</script>
+</body>
+</html>
