@@ -14,13 +14,13 @@ When Moobidesk's UI changes meaningfully, re-capture against a clean 8x8 trial t
 
 Use the embedded view when:
 - The audience uses Moobidesk daily and will scrutinise the recreation for authenticity
-- The SE can't log into a real Moobidesk tenant during the demo (no tenant, SSO pain, demo environment)
+- The presenter can't log into a real Moobidesk tenant during the demo (no tenant, SSO pain, demo environment)
 - The pitch is about **auto-categorisation**, **smart-reply productivity**, **bulk-reply handling** — things the click-out version can't show because they happen inside the inbox
 - The demo flows from broadcast → reply handling (CRM bulk-send pattern)
 
 Use the click-out pattern (Pattern A in `integrations.md`) when:
 - The demo is a 1-to-1 customer journey that ends in a simple handoff
-- The SE has a real Moobidesk tenant and wants to show it live
+- The presenter has a real Moobidesk tenant and wants to show it live
 - The audience doesn't need to see the agent UX in detail
 
 ## Top-level view swap
@@ -59,11 +59,11 @@ Full-width, ~72px tall, white background with subtle bottom border. Left-to-righ
 - Moobidesk logo + word mark (black "M**oo**bidesk" with the two O's as the signature eyes/logo marks)
 - Version string in small muted text below the wordmark (e.g. `v20260225001` — Moobidesk uses a date-based build number, not semver)
 - Account selector (large dropdown showing "8x8 Trial Account" — centred in the top bar region)
-- User profile: circular avatar + user name + "Available" status (small green dot). Real-world shows `Harris Malik / Available`; for the demo use the SE's own name so it feels like *their* console.
+- User profile: circular avatar + user name + "Available" status (small green dot). Real-world shows `Harris Malik / Available`; for the demo use the presenter's own name so it feels like *their* console.
 - Unread chat counter on the far right — small speech-bubble icon with a count in `X/Y` format (e.g. `8/50`) representing current load against max concurrent chats.
 - "← Back to Ops Console" button — calls `switchStage('workflow')`. This button is **not** part of the real Moobidesk UI; place it subtly (e.g. top-left as a small pill) so it doesn't visually compete with the real chrome.
 
-The back button is the one navigational affordance that pulls the SE out of the Moobidesk view. Make it visible but not loud — the pitch wants the audience to believe they're inside Moobidesk, not looking at a toggle.
+The back button is the one navigational affordance that pulls the presenter out of the Moobidesk view. Make it visible but not loud — the pitch wants the audience to believe they're inside Moobidesk, not looking at a toggle.
 
 ## 3-column layout
 
@@ -104,7 +104,7 @@ Below the top bar, flex row with three columns:
 
    **Smart-reply chips row** (above composer, shown when a customer reply is selected but not yet responded to):
    - 3-5 chips with suggested responses based on the reply's auto-category
-   - Tapping a chip pre-fills the composer; SE can edit before sending
+   - Tapping a chip pre-fills the composer; presenter can edit before sending
    - Chips should feel specific ("Thank you, we'll note your payment is coming by the 30th") not generic ("Thanks!")
    - Chips are not part of the real Moobidesk UI today — if you include them, render them with a subtle sparkle/AI icon so the audience understands this is an *added* AI productivity layer (part of the 8x8 AI Studio pitch), not a retrofitted Moobidesk feature.
 
@@ -115,7 +115,7 @@ Below the top bar, flex row with three columns:
    - Far-right: large blue `#2196F3` square button with a white paper-plane send icon
    - Top of the composer has a thin border separating it from the chat area
 
-   **Floating green call FAB** (bottom-right, absolute positioned, ~56px diameter) — solid green circle with a white phone-handset icon. Present in the real Moobidesk UI as the voice-call affordance. For the demo, wire it to `window.open()` on the 8x8 trial Moobidesk conversation URL so the SE can pivot to the live tool mid-demo if they want.
+   **Floating green call FAB** (bottom-right, absolute positioned, ~56px diameter) — solid green circle with a white phone-handset icon. Present in the real Moobidesk UI as the voice-call affordance. For the demo, wire it to `window.open()` on the 8x8 trial Moobidesk conversation URL so the presenter can pivot to the live tool mid-demo if they want.
 
 ## CSS tokens for Moobidesk
 
@@ -189,7 +189,7 @@ Use 5 distinct categories in the demo set (Will Pay, Defer, Acknowledged, Disput
 
 ### `CONVERSATIONS` (state tracker)
 
-Tracks which conversations the SE has handled during the demo. Simple dict:
+Tracks which conversations the presenter has handled during the demo. Simple dict:
 
 ```javascript
 const CONVERSATIONS = {};  // customerId -> { handled: boolean, agentReply: string }
@@ -209,22 +209,25 @@ Keep the state mutations consistent with the existing orchestrator style — sma
 
 ## Navigation hooks
 
-From the workflow side, `switchStage('moobidesk')` is the entry point. The natural places to call it:
-- Stage 3 button in a 3-stage demo (Batch → Campaign → Inbox)
-- Dedicated "Open Inbox" step in a 1-to-1 demo after a handoff
-- A REPLIED recipient row in broadcast mode — tapping it enters the inbox on that customer's conversation
+From the workflow side, `switchStage('moobidesk')` is the entry point. There are three legitimate trigger patterns — pick based on what the journey looks like:
 
-From the Moobidesk side, the "← Back to Ops Console" button is the only way out. Keep it one click — SEs pivot back and forth during the meeting, and a multi-step return breaks flow.
+- **Patron-realistic CTA in a template** — e.g. tapping "Speak to Agent" inside a service-hub template fires `switchStage('moobidesk')` from the `handleButtonClick` branch. The button label stays in the patron's voice; only the underlying handler is operator-aware. Best when the journey naturally surfaces a "speak to a human" moment.
+- **Orchestrator send-button transform after the journey ends** — when the final journey step is a freeform host reply with no patron CTA, transform the orchestrator's main send button into "Switch to [Agent]'s Moobidesk Console →" with `btn.classList.add('handoff')` and `btn.onclick = () => switchStage('moobidesk')`. Cleanest pattern for 1-to-1 demos that end on the host's reply, because the segue button is unmistakably an orchestrator action — it lives in the left control panel, not inside the phone preview. See `references/integrations.md` Pattern B for the snippet + CSS.
+- **Stage button in a multi-stage broadcast demo** — explicit "Open Reply Inbox" stage button on the orchestrator side (control panel, not phone preview). A REPLIED recipient row in broadcast mode also makes sense as an entry point — tapping it enters the inbox on that customer's conversation.
+
+**Anti-pattern to avoid**: a CTA button labeled "Open Host Console", "Open Inbox", or any operator-side language inside a WhatsApp template bubble. Patrons don't see those labels on their real phones, so they shouldn't see them in the demo. If the segue needs a button, put it in the patron's voice ("Speak to Agent") or move the trigger to the orchestrator side.
+
+From the Moobidesk side, the "← Back to Ops Console" button is the only way out. Keep it one click — presenters pivot back and forth during the meeting, and a multi-step return breaks flow.
 
 ## Talking points to surface in the UI
 
-The embedded Moobidesk stage is the SE's chance to surface the messages that matter most for CX leaders:
+The embedded Moobidesk stage is the presenter's chance to surface the messages that matter most for CX leaders:
 - **Auto-categorisation cuts triage time** — the tag on every card proves the system read the reply
 - **Smart-reply chips cut handle time** — chips that are specific to the category prove the system understood the intent
 - **SLA timer creates urgency** — the red `2h:37m:46s/15m` timer shows the cost of slow response
 - **Channel icon + conversation # + agent avatar** show the single-pane-of-glass omnichannel story
 
-Don't add narration banners to the Moobidesk view itself — the fidelity fights the pitch. Put talking points in the SE's notes, not on the canvas.
+Don't add narration banners to the Moobidesk view itself — the fidelity fights the pitch. Put talking points in the presenter's notes, not on the canvas.
 
 ## Things that often break
 
@@ -232,4 +235,4 @@ Don't add narration banners to the Moobidesk view itself — the fidelity fights
 - **Stage swap leaves stale scroll position** — the chat area and conversations list both scroll. Reset both on `switchStage('moobidesk')`.
 - **Smart-reply chips lag behind selection** — if the chips array doesn't re-render when `openMdConversation()` changes the customer, you end up with chips for the previous reply. Always rebuild chips inside `renderMdActiveConversation`.
 - **FAB overlaps composer on narrow viewports** — absolute-positioned FAB + composer can collide below 1280px width. Constrain the Moobidesk view to min-width 1280px or move the FAB up.
-- **Sending a reply doesn't advance to the next unhandled** — `sendMdReply` needs to call `openMdConversation(firstUnhandledCustomerId())` at the end. Without it, the SE has to tap every conversation manually, which kills pacing.
+- **Sending a reply doesn't advance to the next unhandled** — `sendMdReply` needs to call `openMdConversation(firstUnhandledCustomerId())` at the end. Without it, the presenter has to tap every conversation manually, which kills pacing.

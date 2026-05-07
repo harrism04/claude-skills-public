@@ -7,7 +7,7 @@ description: Build a single-file HTML prototype that simulates a WhatsApp Busine
 
 ## What this skill produces
 
-A single self-contained `index.html` file (no build step, no dependencies) that an SE can open in a browser to walk a customer through a scripted WhatsApp Business API journey. The file is the pitch — every detail is tuned to feel like the customer's own product and brand.
+A single self-contained `index.html` file (no build step, no dependencies) that a presenter can open in a browser to walk a customer through a scripted WhatsApp Business API journey. The file is the pitch — every detail is tuned to feel like the customer's own product and brand.
 
 The canonical reference is `assets/starter-template.html` — a working, brand-neutral orchestrator with placeholder tokens and a generic step journey. Fork it and re-skin per client; the rest of this skill is the playbook for how.
 
@@ -64,7 +64,7 @@ A good demo has **6–10 steps** (1-to-1 mode) or **4–6 stages** (broadcast / 
 - `AUTHENTICATION` — OTP / verification (different pricing tier in some markets)
 - `SERVICE` / `REPLY` — freeform inside the 24-hour customer service window
 
-Surfacing the category visibly in the left panel is part of the pitch — it shows the SE knows the WABA pricing model.
+Surfacing the category visibly in the left panel is part of the pitch — it shows the presenter knows the WABA pricing model.
 
 ### 3. Write the demo data
 
@@ -89,14 +89,15 @@ Start from `assets/starter-template.html`. It is a complete, working orchestrato
 
 ### 5. Add interactive button handlers
 
-Buttons inside WhatsApp messages can do four things:
+**Every button label inside a WhatsApp template must read in the patron's voice** — "Speak to Agent", "Pay Now", "RSVP", "View Order". Operator-side language ("Open Console", "Switch to Inbox", "Open Host View") in a template bubble breaks the spell — patrons never see those words on their phones. Operator affordances live on the orchestrator's main send button or the left control panel, never inside the phone preview. With that in mind, buttons inside WhatsApp messages can do five things:
+
 - **Quick reply** — advances the demo if the next step is a matching `customer_reply`. Built into the template; no extra code needed if you set `step.message` to match the button label.
-- **CTA** — opens an external URL in a new tab (Singpass, MockPass, custom portal). Add a branch in `handleButtonClick()` keyed on the button text.
-- **Handoff (click-out)** — transforms the main send button into "Open [Tool] Console" (e.g. external Moobidesk URL). Pattern is in the starter template's `Speak to Agent` handler.
-- **Handoff (embedded)** — switches the view from 1-to-1/broadcast to the embedded Moobidesk stage. Pattern is in `references/moobidesk-inbox.md`.
+- **CTA URL** — opens an external URL in a new tab (Singpass, MockPass, custom portal, companion microsite). Add a branch in `handleButtonClick()` keyed on the button text.
+- **Handoff (click-out)** — patron taps a realistic CTA (e.g. "Speak to Agent"); handler emits an in-chat acknowledgement and transforms the orchestrator's main send button into "Open [Tool] Console". Pattern is in the starter template's `Speak to Agent` handler.
+- **Handoff (embedded)** — same patron-realistic CTA pattern, but the handler calls `switchStage('moobidesk')` instead of opening an external URL. **Alternative**: when the journey ends without a patron CTA on the final step, transform the orchestrator's main send button into "Switch to [Agent]'s Moobidesk Console →" and call `switchStage('moobidesk')` from there. See `references/moobidesk-inbox.md` and `references/integrations.md` for both trigger snippets.
 - **In-app flow** — opens the WhatsApp Flow overlay. Set `step.triggersFlow: true` on the preceding step.
 
-See `references/integrations.md` for ready-to-paste handler snippets for the common click-outs.
+See `references/integrations.md` for ready-to-paste handler snippets for the common click-outs and the Moobidesk segue patterns.
 
 ### 6. Sanity check before delivery
 
@@ -133,8 +134,9 @@ The demo is a **sales asset**, not engineering documentation. That means:
 
 - **Show the channel mechanics, not the implementation.** Audiences care that "this is a Utility template that fires when the credit decisioning engine returns an approved status" — they don't care about the API endpoint. Lead with business events.
 - **Use real-looking data.** Believable reference IDs (`CC-2026-04158`, `PL-2026-00742`), last-4-only card numbers, local currency formatting, locale-appropriate dates. Lazy placeholders (`[Customer Name]`, `XXX-XXX`) kill the spell.
+- **Button labels stay in the patron's voice.** Every CTA inside a WhatsApp template must read like something the customer would tap — "Speak to Agent", "Pay Now", "RSVP", "View Order". Operator-side language ("Open Console", "Switch to Inbox", "Open Host View") inside a template bubble immediately breaks the spell — patrons never see those words on their phones. Operator affordances belong on the orchestrator's main send button or the left control panel, not inside the phone preview.
 - **Keep WhatsApp chrome pixel-authentic** — see the mandatory list below.
-- **Keep Moobidesk chrome authentic too.** If you include an embedded Moobidesk stage, match the real UI — folder tree hierarchy, active-card charcoal background, status dots, red elapsed timers, WhatsApp channel badge, headset agent-assignment icon. Reference a real Moobidesk screenshot before building. See `references/moobidesk-inbox.md`.
+- **Keep Moobidesk chrome authentic too.** If the demo includes an embedded Moobidesk stage, the visual ground truth is `assets/moobidesk-inbox-2026-04.png` — **view this PNG before writing any Moobidesk markup**. The screenshot encodes pixel-level layout, spacing, icon choices, and font weights that no prose description can fully capture. The text in `references/moobidesk-inbox.md` covers the semantics (when to use which colour, which interactions matter for the pitch) but the PNG is what tells you how it actually looks. You need both.
 - **Don't overdesign the left panel.** It's a control surface, not a brochure. Step cards with status pills, category tags, trigger labels. Resist adding charts or decorative elements that compete with the chat preview.
 
 ## WhatsApp chrome — mandatory authenticity checklist
@@ -177,6 +179,7 @@ The starter template implements all of these. Do not regress them when re-skinni
 - White background (same as incoming bubble), `border-radius: 0 0 8px 8px`.
 - Each button: `border-top: 1px solid #e0e0e0`, link-blue text (`#027eb5`), centered, 13px bold.
 - URL-type buttons get an external-link SVG icon; reply buttons get no icon.
+- **Labels in the patron's voice only.** "Speak to Agent" ✓, "Pay Now" ✓, "View Order" ✓. "Open Console" ✗, "Switch View" ✗, "Open Inbox" ✗. The rule: would the customer tap this label without confusion? If no, it doesn't belong here — move it to the orchestrator's main send button.
 
 ### Typing indicator
 - Sits in DOM as a persistent node, shown/hidden via `.show` class — not created/destroyed on each step.
@@ -210,6 +213,7 @@ The starter template implements all of these. Do not regress them when re-skinni
 - Don't invent regulatory claims. If the SG market shows Singpass, that's because MAS banned SMS OTP for banking.
 - Don't write CSS or JS in separate files. The demo must travel as one file.
 - Don't half-recreate Moobidesk. If you embed it, go faithful.
+- Don't put operator-side controls inside WhatsApp template CTAs. "Open Inbox", "Switch View", "Open [Tool] Console" — these are orchestrator-side actions and belong on the main send button or left control panel, not in the phone preview. Patrons never see those labels on their actual phones, so they shouldn't see them in your demo either.
 
 ## References
 
@@ -223,3 +227,24 @@ Read these before scaffolding a new demo:
 Assets:
 - `assets/starter-template.html` — fork point for new demos (working out-of-the-box)
 - `assets/companion-page-template.html` — base for verify.html / reschedule.html / etc.
+
+---
+
+## Appendix: Asset mirrors
+
+The files referenced throughout this skill (`assets/...`, `references/...`) ship locally alongside SKILL.md and should be available at every invocation. As insurance against missing or corrupted local assets, the canonical versions are mirrored at the URLs below. If a local `view` call fails, fall back to fetching the raw URL.
+
+| Local path | Mirror URL |
+|---|---|
+| `assets/starter-template.html` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/assets/starter-template.html` |
+| `assets/companion-page-template.html` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/assets/companion-page-template.html` |
+| `assets/moobidesk-inbox-2026-04.png` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/assets/moobidesk-inbox-2026-04.png` |
+| `references/architecture.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/architecture.md` |
+| `references/broadcast.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/broadcast.md` |
+| `references/integrations.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/integrations.md` |
+| `references/moobidesk-inbox.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/moobidesk-inbox.md` |
+| `references/verticals.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/verticals.md` |
+
+The PNG is binary — if local `view` fails, `view` against the raw URL works the same way (the URL serves `Content-Type: image/png`). Markdown and HTML files can be read via `web_fetch`.
+
+Mirror is maintained by the skill owner. Treat local files as canonical; only fall back when local access fails.
