@@ -1,22 +1,22 @@
 # Integration Hooks
 
-Real demos almost always need at least one click-out or cross-view — to MockPass, to a Moobidesk console, to a custom portal. These integrations are the "this is real, not a mockup" moments. Wire them carefully.
+Real demos almost always need at least one click-out or cross-view — to MockPass, to an 8x8 Converse console (formerly Moobidesk), to a custom portal. These integrations are the "this is real, not a mockup" moments. Wire them carefully.
 
 This reference has ready-to-paste handler snippets for the integrations 8x8 presenters use most often.
 
 ---
 
-## Moobidesk Agent Console — two patterns
+## 8x8 Converse Agent Console — two patterns
 
-Moobidesk can appear in the prototype in two distinct ways. Pick based on what the pitch needs.
+8x8 Converse (formerly Moobidesk) can appear in the prototype in two distinct ways. Pick based on what the pitch needs.
 
-### Pattern A: Click-out handoff (opens external Moobidesk tenant in a new tab)
+### Pattern A: Click-out handoff (opens external Converse tenant in a new tab)
 
-The lightest-weight option. Used when the demo wants to show the conversation transferring from automated WhatsApp into a live agent's queue, and the presenter has a Moobidesk tenant they can log into during the meeting. The audience sees the demo hand off and then sees the real tool open in another tab — the live system is the payoff.
+The lightest-weight option. Used when the demo wants to show the conversation transferring from automated WhatsApp into a live agent's queue, and the presenter has a Converse tenant they can log into during the meeting. The audience sees the demo hand off and then sees the real tool open in another tab — the live system is the payoff.
 
 **Trigger button**: usually "Speak to Agent" in the final service-hub step.
 
-**Behavior**: when clicked, send an in-chat acknowledgement ("We're transferring you to an agent..."), then transform the main send button into "Open Moobidesk Agent Console" pointing at the live console URL.
+**Behavior**: when clicked, send an in-chat acknowledgement ("We're transferring you to an agent..."), then transform the main send button into "Open Converse Agent Console" pointing at the live console URL.
 
 **Snippet** — add this branch to `handleButtonClick()`:
 
@@ -40,33 +40,33 @@ if (buttonText === 'Speak to Agent') {
     btn.disabled = false;
     btn.classList.remove('complete');
     btn.style.background = '#1565c0';
-    btnText.textContent = 'Open Moobidesk Agent Console';
+    btnText.textContent = 'Open Converse Agent Console';
     btn.onclick = () => window.open('https://e18.moobidesk.com/barfi-e19/8x8_trial/conversation', '_blank');
   }, 600);
 }
 ```
 
-**URL**: the canonical 8x8 trial Moobidesk URL is `https://e18.moobidesk.com/barfi-e19/8x8_trial/conversation`. For a customer-specific Moobidesk tenant, substitute the customer's URL.
+**URL**: the canonical 8x8 trial Converse URL is `https://e18.moobidesk.com/barfi-e19/8x8_trial/conversation` (the `moobidesk.com` domain is retained post-rebrand). For a customer-specific Converse tenant, substitute the customer's URL.
 
-**Gotcha**: customer-specific Moobidesk tenants often sit behind SSO. If the presenter isn't logged in during the dry run, the click-out 404s. Always log in before the meeting.
+**Gotcha**: customer-specific Converse tenants often sit behind SSO. If the presenter isn't logged in during the dry run, the click-out 404s. Always log in before the meeting.
 
-### Pattern B: Embedded Moobidesk view (in-prototype full recreation)
+### Pattern B: Embedded Converse view (in-prototype full recreation)
 
-Used when the agent's reply experience is the pitch — ops-team demos, CRM bulk-send demos, or any time the audience is the CX manager rather than the end customer. Instead of opening an external URL, the prototype swaps the entire viewport into a faithful 3-column Moobidesk recreation (folder sidebar, conversations list, active conversation with composer).
+Used when the agent's reply experience is the pitch — ops-team demos, CRM bulk-send demos, or any time the audience is the CX manager rather than the end customer. Instead of opening an external URL, the prototype swaps the entire viewport into a faithful 3-column Converse recreation (folder sidebar, conversations list, active conversation with composer).
 
 This pattern is more work (you're rebuilding the inbox UI) but vastly higher-fidelity. The audience gets to watch replies land, tap auto-categorised conversations, fire smart-reply chips, and feel the full ops workflow without the presenter juggling tabs.
 
-See `references/moobidesk-inbox.md` for the full pattern — layout, styling tokens, data shape, reply scenarios, and wiring.
+See `references/converse-inbox.md` for the full pattern — layout, styling tokens, data shape, reply scenarios, and wiring.
 
 **When to choose A vs B:**
 
 | Factor | Pattern A (click-out) | Pattern B (embedded) |
 |---|---|---|
 | Audience | End-customer journey | Ops / CX team |
-| Presenter has real Moobidesk tenant to demo? | Yes, use it | No, or audience can't see it |
+| Presenter has real Converse tenant to demo? | Yes, use it | No, or audience can't see it |
 | Audience cares about agent UX fidelity? | Low — it's a handoff moment | High — it's the centrepiece |
-| Build cost | ~20 lines of JS | Full stage (see moobidesk-inbox.md) |
-| Risk | SSO / popup blocker | Moobidesk UI changes → fidelity drift |
+| Build cost | ~20 lines of JS | Full stage (see converse-inbox.md) |
+| Risk | SSO / popup blocker | Converse UI changes → fidelity drift |
 
 When in doubt for CRM / bulk-send / reply-handling use cases, choose B. When the demo is a customer acquisition journey that ends in a handoff, A is usually enough.
 
@@ -93,22 +93,22 @@ When the final journey step is a freeform host reply with no patron CTA, the orc
 if (currentStep >= steps.length) {
   btn.classList.add('handoff');
   btn.onclick = () => switchStage('moobidesk');
-  btnTxt.textContent = "Switch to Sarah's Moobidesk Console →";
+  btnTxt.textContent = "Switch to Sarah's Converse Console →";
 }
 ```
 
-Add the matching CSS so the transform is unmistakable (charcoal Moobidesk colour with a pulsing blue ring telegraphs "different kind of action"):
+Add the matching CSS so the transform is unmistakable (Converse dark navy with a pulsing accent ring telegraphs "different kind of action"):
 
 ```css
 .send-btn.handoff {
-  background: linear-gradient(135deg, #2c3e50, #1f2c3a);
+  background: linear-gradient(135deg, #1A2332, #0f1620);
   color: #fff;
-  box-shadow: 0 0 0 2px rgba(33,150,243,0.35), 0 4px 14px rgba(44,62,80,0.4);
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.35), 0 4px 14px rgba(26,35,50,0.4);
   animation: handoffPulse 2.4s ease-in-out infinite;
 }
 @keyframes handoffPulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(33,150,243,0.35), 0 4px 14px rgba(44,62,80,0.4); }
-  50%      { box-shadow: 0 0 0 6px rgba(33,150,243,0.10), 0 6px 20px rgba(44,62,80,0.5); }
+  0%, 100% { box-shadow: 0 0 0 2px rgba(25,118,210,0.35), 0 4px 14px rgba(26,35,50,0.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(25,118,210,0.10), 0 6px 20px rgba(26,35,50,0.5); }
 }
 ```
 
@@ -239,5 +239,5 @@ Use `assets/companion-page-template.html` as the starting point.
 - **CTA button text doesn't match the `handleButtonClick()` branch** — silent fail, button just renders the outgoing bubble. Always test every button.
 - **Companion page doesn't open** — popup blocker. Tell the presenter to allow popups for the demo URL during their dry-run.
 - **MockPass URL changes** — the URL is occasionally rotated by GovTech. If MockPass returns 404, check `https://api.singpass.gov.sg` for the current test endpoint.
-- **Moobidesk URL behind SSO** (Pattern A) — the trial URL is open, but customer-specific Moobidesk tenants may require SSO. If the presenter isn't logged in, the click-out 404s. Ask them to log in to Moobidesk in the same browser before the demo.
-- **Embedded Moobidesk stage fidelity drift** (Pattern B) — Moobidesk's real UI evolves; an old screenshot-based recreation can start looking dated. Re-screenshot before every demo cycle to a new customer.
+- **Converse URL behind SSO** (Pattern A) — the trial URL is open, but customer-specific Converse tenants may require SSO. If the presenter isn't logged in, the click-out 404s. Ask them to log in to Converse in the same browser before the demo.
+- **Embedded Converse stage fidelity drift** (Pattern B) — Converse's real UI evolves; an old screenshot-based recreation can start looking dated. Re-screenshot before every demo cycle to a new customer.

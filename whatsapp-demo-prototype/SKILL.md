@@ -1,250 +1,118 @@
 ---
 name: whatsapp-demo-prototype
-description: Build a single-file HTML prototype that simulates a WhatsApp Business API customer journey for an 8x8 client or prospect. Use whenever the user wants to scaffold a WhatsApp demo, Meta matchmaking demo, POC walkthrough, presales prototype, or "demo orchestrator" for a named customer (e.g. "build me a demo for DBS retail loyalty", "WhatsApp prototype for Singtel", "CIMB onboarding walkthrough"). Also trigger on "WABA demo", "WhatsApp Flow demo", "broadcast demo", "campaign demo", "credit card demo", "onboarding demo", "CRM bulk-send demo", "agent inbox demo", or any request to mock up a WhatsApp journey — 1-to-1 conversation, 1-to-many broadcast, or ops-facing agent console. Output is a self-contained HTML file with WhatsApp chrome, left-side step orchestrator, right-side phone preview (or embedded Moobidesk inbox), parameterized for brand, markets/personas, vertical, and integration hooks (Moobidesk handoff, Moobidesk embedded view, MockPass/Singpass, 8x8 Verify OTP, custom URLs).
+description: Build a single-file HTML prototype that simulates a WhatsApp Business API customer journey for an 8x8 client or prospect. Use whenever the user wants to scaffold a WhatsApp demo, Meta matchmaking demo, POC walkthrough, presales prototype, or "demo orchestrator" for a named customer (e.g. "build me a demo for DBS retail loyalty", "WhatsApp prototype for Singtel", "CIMB onboarding walkthrough"). Also trigger on "WABA demo", "WhatsApp Flow demo", "broadcast demo", "campaign demo", "credit card demo", "onboarding demo", "CRM bulk-send demo", "agent inbox demo", or any request to mock up a WhatsApp journey — 1-to-1 conversation, 1-to-many broadcast, or ops-facing agent console. Output is a self-contained HTML file with WhatsApp chrome, left-side step orchestrator, right-side phone preview (or embedded Moobidesk inbox), parameterized for brand, markets/personas, vertical, and integration hooks (Converse handoff, Converse embedded view, MockPass/Singpass, 8x8 Verify OTP, custom URLs; Converse formerly Moobidesk).
 ---
 
 # WhatsApp Demo Prototype Builder
 
-## What this skill produces
+## What this produces
 
-A single self-contained `index.html` file (no build step, no dependencies) that a presenter can open in a browser to walk a customer through a scripted WhatsApp Business API journey. The file is the pitch — every detail is tuned to feel like the customer's own product and brand.
+A single self-contained `index.html` (no build step, no dependencies) that walks a customer through a scripted WhatsApp Business API journey. Fork `assets/starter-template.html` and re-skin per client — the rest of this skill is the playbook.
 
-The canonical reference is `assets/starter-template.html` — a working, brand-neutral orchestrator with placeholder tokens and a generic step journey. Fork it and re-skin per client; the rest of this skill is the playbook for how.
+## Modes
 
-## Prototype modes
+Pick one (or combine):
 
-The skill supports three top-level modes. Pick the one that matches the pitch:
+- **1-to-1 journey** — single persona, scripted conversation. Left pane = step orchestrator, right pane = phone preview. Default. Best for journey design, conversational depth, Flows, interactive CTAs.
+- **1-to-many broadcast** — campaign fires to a recipient list, right pane = delivery dashboard. See `references/broadcast.md`. Best for scale, deliverability, CRM bulk sends, OTP volumes.
+- **Embedded 8x8 Converse inbox** (formerly Moobidesk) — viewport swaps into a faithful 3-column agent console. See `references/converse-inbox.md`. Best when the audience is the ops/CX manager — agent productivity, reply handling, bot-to-human handoff.
 
-- **1-to-1 journey** — single persona walked through a scripted conversation. Left pane is the step orchestrator; right pane is a WhatsApp phone preview. Default mode. Best when the pitch is about journey design, conversational depth, Flows, or interactive CTAs.
-- **1-to-many broadcast** — campaign fires to a recipient list; right pane is a delivery dashboard with per-recipient status animation. See `references/broadcast.md`. Best when the pitch is about scale, deliverability, or campaign orchestration (CRM bulk sends, promo waves, payment reminders, OTP volumes).
-- **Embedded Moobidesk inbox** — one or more stages swap the entire viewport into a faithful 3-column Moobidesk agent console recreation (folder sidebar, conversations list, active conversation with composer). See `references/moobidesk-inbox.md`. Best when the pitch centres on the agent's reply experience — ops-team productivity, reply handling after a bulk send, bot-to-human handoff, or anywhere the audience is the ops/CX manager rather than the end customer.
-
-A single demo can combine modes. Common combinations:
-- Broadcast stage → Embedded Moobidesk stage (CRM bulk send + reply handling — the HLF-style ops console demo).
-- 1-to-1 journey → Moobidesk click-out handoff (simple conversational journey that transfers to a real Moobidesk tenant at the end — see `references/integrations.md`).
-- 1-to-1 journey → Embedded Moobidesk stage (conversational journey that ends inside an in-prototype agent console, so the audience sees the whole pipeline without leaving the file).
-
-Decide the combination during intake.
+Common combinations: broadcast → embedded Converse (CRM bulk + reply ops); 1-to-1 → Converse handoff (click-out or embedded). Decide combination at intake.
 
 ## When to invoke
 
-Trigger eagerly on requests that mention any of:
-- A named bank, telco, retailer, insurer, or other 8x8 prospect plus "WhatsApp", "demo", "prototype", "POC", "Meta session", "matchmaking", "showcase"
-- Channel-specific phrases: "WABA demo", "Business API demo", "WhatsApp Flow demo", "template demo", "interactive message demo"
-- Use-case phrases: "customer onboarding demo", "credit card demo", "loyalty demo", "claims demo", "appointment reminder demo", "OTP demo", "broadcast demo", "campaign demo", "CRM bulk-send demo", "reply inbox demo", "agent console demo"
-- Generic "build me a demo for [Customer]" where the prior context is CPaaS / messaging
+Trigger eagerly on any of:
 
-When in doubt, **ask** rather than invent — the skill works best when the brand details are real.
+- Named bank/telco/retailer/insurer + WhatsApp/demo/prototype/POC/Meta/matchmaking/showcase
+- Channel phrases: "WABA demo", "Business API demo", "WhatsApp Flow demo", "template demo", "interactive message demo"
+- Use-case phrases: "onboarding demo", "credit card demo", "loyalty demo", "claims demo", "appointment reminder demo", "OTP demo", "broadcast demo", "campaign demo", "CRM bulk-send demo", "reply inbox demo", "agent console demo"
+- Generic "build me a demo for [Customer]" with CPaaS context
+
+When in doubt, **ask** rather than invent — the skill works best when brand details are real.
 
 ## Workflow
 
-Follow these steps in order. Don't skip the intake — the demo is only as good as the brief.
-
 ### 1. Intake interview
 
-Use AskUserQuestion to capture (group into 2-4 questions max — don't grill the user one field at a time):
+Use AskUserQuestion (group into 2–4 questions max — don't grill the user one field at a time). Capture:
 
-1. **Client identity** — name, industry vertical, two or three brand colors (or a logo URL to eyedrop), tagline.
-2. **Use case + mode**
-   - The customer journey in one sentence (e.g. "credit card acquisition", "policy renewal", "delivery notifications + reschedule", "loan reminder bulk send").
-   - **Mode**: 1-to-1 conversation, 1-to-many broadcast, embedded Moobidesk inbox, or a combination (e.g. broadcast + inbox for CRM reply-handling demos). See `references/broadcast.md` and `references/moobidesk-inbox.md` when in doubt.
-3. **Markets / personas** — single market or multi-market tabs (e.g. SG/ID/MY/TH). Capture customer name, phone format, currency, locale, and any market-specific differentiator (e.g. SG uses Singpass, ID uses SMS OTP).
-4. **Integration hooks** — does the demo need to open MockPass/Singpass, hand off to an external Moobidesk tenant, embed a Moobidesk inbox view in-prototype, trigger 8x8 Verify OTP, or open any other live URL? List each click-out and what it should open.
+1. **Client identity** — name, vertical, two or three brand colors (or logo URL to eyedrop), tagline.
+2. **Use case + mode** — journey in one sentence (e.g. "credit card acquisition", "policy renewal", "loan reminder bulk send"); choose mode (1-to-1 / broadcast / embedded Converse / combination).
+3. **Markets / personas** — single or multi-market tabs (SG/ID/MY/TH). Capture customer name, phone format, currency, locale, market-specific differentiator (e.g. SG = Singpass, ID = SMS OTP).
+4. **Integration hooks** — MockPass/Singpass, external Converse handoff, embedded Converse, 8x8 Verify OTP, custom URLs. List each click-out and what it opens.
 
-If the user has already given you most of this in the prompt, skip to the gaps.
+If the user already gave most of this, skip to gaps.
 
-### 2. Decide the step sequence
+### 2. Decide step sequence
 
-Use `references/verticals.md` for proven step sequences by industry. Pick the closest vertical and adapt — don't write from scratch unless the use case is genuinely novel.
+Pick the closest vertical from `references/verticals.md`. Adapt — don't write from scratch unless genuinely novel.
 
-A good demo has **6–10 steps** (1-to-1 mode) or **4–6 stages** (broadcast / Moobidesk modes). Fewer feels thin; more loses the audience. Each step should map to a real business event, not just "another message". Mark each step with its WhatsApp template category:
+Target **6–10 steps** (1-to-1) or **4–6 stages** (broadcast / Converse). Each step maps to a real business event. Surface the WhatsApp template category visibly: `MARKETING` (promotional, opt-in, ~24h restrictions), `UTILITY` (transactional updates), `AUTHENTICATION` (OTP/verification), `SERVICE`/`REPLY` (freeform within the 24h customer service window).
 
-- `MARKETING` — promotional / acquisition (must be opt-in, ~24h restrictions)
-- `UTILITY` — transactional updates (order confirmations, OTPs, reminders)
-- `AUTHENTICATION` — OTP / verification (different pricing tier in some markets)
-- `SERVICE` / `REPLY` — freeform inside the 24-hour customer service window
+### 3. Write demo data
 
-Surfacing the category visibly in the left panel is part of the pitch — it shows the presenter knows the WABA pricing model.
+Read `references/architecture.md` first — `DEMO_DATA` shape and step types (`template`, `customer_reply`, `sms_otp`, `system_event`) are specific. Matching the architecture exactly is what makes the orchestrator JS work without modification.
 
-### 3. Write the demo data
+Multi-market: keep `id` and `title` aligned across markets, vary only substantive content (currency, persona, regulatory differentiator).
 
-Read `references/architecture.md` first if you're unfamiliar with the `DEMO_DATA` shape and step types (`template`, `customer_reply`, `sms_otp`, `system_event`). The architecture is small but specific; matching it exactly is what makes the orchestrator JS work without modification.
+For broadcast / embedded-Converse modes, see the respective references for their data shapes.
 
-For multi-market demos, keep the step `id` and `title` aligned across markets so the user can compare side-by-side. Vary only the substantive content (currency, persona name, regulatory differentiator).
+### 4. Re-skin starter template
 
-For broadcast mode, write a recipient list and campaign definition instead — see `references/broadcast.md`.
+Fork `assets/starter-template.html`. In order:
 
-For embedded-Moobidesk stages, write reply scenarios and conversation cards — see `references/moobidesk-inbox.md`.
+1. CSS `:root` brand vars — replace `--brand-primary/secondary/accent`. Keep WA green tokens (`--wa-green`, `--wa-light`, `--wa-bg`, `--wa-dark`) unchanged. If embedded Converse, also define Converse tokens (`--cv-*`) from `references/converse-inbox.md`.
+2. Header copy — control panel title, phone preview business name, avatar initials.
+3. `DEMO_DATA` from step 3.
+4. `FLOW_SCREENS` if Flow used; else strip overlay HTML/JS.
+5. Companion pages — `verify.html`, `reschedule.html`, etc. as separate files in same folder. Use `assets/companion-page-template.html`.
+6. `.moobidesk-view` (class name preserved for backwards compat) + `switchStage()` swap if embedded Converse — see `references/converse-inbox.md`.
 
-### 4. Re-skin the starter template
+Keep WhatsApp chrome pixel-authentic — full spec in `references/whatsapp-chrome.md`. Do not regress.
 
-Start from `assets/starter-template.html`. It is a complete, working orchestrator with placeholder client tokens and a generic 3-step journey. Re-skin in this order:
+### 5. Wire button handlers
 
-1. **CSS variables** in `:root` — replace `--brand-primary`, `--brand-secondary`, `--brand-accent` with the client's colors. Keep WhatsApp green tokens (`--wa-green`, `--wa-light`, `--wa-bg`, `--wa-dark`) unchanged. If the demo includes an embedded Moobidesk stage, also define the Moobidesk tokens listed in `references/moobidesk-inbox.md`.
-2. **Header copy** — control panel title, phone preview business name, verified-account avatar initials.
-3. **`DEMO_DATA`** — replace with the step sequence you wrote in step 3.
-4. **`FLOW_SCREENS`** — only if the demo includes a WhatsApp Flow (the in-app form). Skip the overlay HTML and JS if not needed.
-5. **Companion pages** — if the demo opens `verify.html`, `reschedule.html`, etc., create those as separate small HTML files in the same folder. Use `assets/companion-page-template.html` as the base.
-6. **Moobidesk view (optional)** — if the demo includes an embedded Moobidesk stage, add the `.moobidesk-view` section and `switchStage()` swap logic as described in `references/moobidesk-inbox.md`.
+Five action types: quick-reply (built-in if `step.message` matches button label), CTA URL, click-out handoff (transforms main send button into "Open [Tool] Console"), embedded handoff (`switchStage('moobidesk')`), in-app Flow (`step.triggersFlow: true`). Snippets in `references/integrations.md`.
 
-### 5. Add interactive button handlers
+**Patron's voice rule** — every label inside a WhatsApp template reads like something the customer would tap: "Speak to Agent", "Pay Now", "RSVP", "View Order". Operator-side language ("Open Console", "Switch View", "Open Inbox") belongs on the orchestrator's main send button or left control panel — never inside the phone preview. Patrons never see those words on their actual phones, so they shouldn't see them in your demo either. (See `references/guardrails.md` for the full posture set.)
 
-**Every button label inside a WhatsApp template must read in the patron's voice** — "Speak to Agent", "Pay Now", "RSVP", "View Order". Operator-side language ("Open Console", "Switch to Inbox", "Open Host View") in a template bubble breaks the spell — patrons never see those words on their phones. Operator affordances live on the orchestrator's main send button or the left control panel, never inside the phone preview. With that in mind, buttons inside WhatsApp messages can do five things:
+### 6. Verify before delivery
 
-- **Quick reply** — advances the demo if the next step is a matching `customer_reply`. Built into the template; no extra code needed if you set `step.message` to match the button label.
-- **CTA URL** — opens an external URL in a new tab (Singpass, MockPass, custom portal, companion microsite). Add a branch in `handleButtonClick()` keyed on the button text.
-- **Handoff (click-out)** — patron taps a realistic CTA (e.g. "Speak to Agent"); handler emits an in-chat acknowledgement and transforms the orchestrator's main send button into "Open [Tool] Console". Pattern is in the starter template's `Speak to Agent` handler.
-- **Handoff (embedded)** — same patron-realistic CTA pattern, but the handler calls `switchStage('moobidesk')` instead of opening an external URL. **Alternative**: when the journey ends without a patron CTA on the final step, transform the orchestrator's main send button into "Switch to [Agent]'s Moobidesk Console →" and call `switchStage('moobidesk')` from there. See `references/moobidesk-inbox.md` and `references/integrations.md` for both trigger snippets.
-- **In-app flow** — opens the WhatsApp Flow overlay. Set `step.triggersFlow: true` on the preceding step.
+Run `references/qa-checks.md` mandatorily. Two layers: (a) mechanical — script extraction + `node --check`, tag balance, placeholder sweep, function presence, optional Playwright runtime assertion; (b) visual walk-through.
 
-See `references/integrations.md` for ready-to-paste handler snippets for the common click-outs and the Moobidesk segue patterns.
-
-### 6. Sanity check before delivery
-
-Open the file mentally and walk through every step:
-- Does each step's `trigger` label read like a real backend system event (not "user clicks button")? Triggers are part of the pitch — they communicate "this is automated, deterministic, eventable".
-- Does the customer profile card at the top tell the persona's story in one glance?
-- Is every CTA button wired? An unhandled button click is the most common bug.
-- For multi-market: does switching tabs reset the chat and re-render the profile?
-- For broadcast mode: do the per-recipient delivery states animate convincingly?
-- For embedded Moobidesk: is the active-conversation card highlight faithful, do smart-reply chips populate the composer, does the back-button return to the workflow view cleanly?
+**Do not ship a demo that fails the script-extraction check.** Orphaned function tails are silent killers — file loads, chrome renders, but every JS-driven element fails.
 
 ### 7. Save and present
 
-Save the final HTML to the user's selected folder (typically `<workspace>/demos/<client-slug>/index.html`) and share via a `computer://` link. If multiple files (companion pages), share the entry point.
+Save to `<workspace>/demos/<client-slug>/index.html`. Share via `computer://` link. If multiple files, share the entry point. If the user maintains a `demos/` index, append a card.
 
-If the user already maintains a `demos/` index page, append a card linking to the new demo.
+## Customization knobs
 
-## Customization knobs (summary)
-
-| Knob | Where it lives | Reference |
+| Knob | Where | Reference |
 |---|---|---|
-| Brand colors / logo | CSS `:root` vars + `.wa-avatar` text | starter-template.html |
+| Brand colors / logo | CSS `:root` + `.wa-avatar` | starter-template.html |
 | Markets / personas | `DEMO_DATA` keys + `.market-tabs` | architecture.md |
-| Vertical journey | `DEMO_DATA[market].steps` array | verticals.md |
-| Mode (1-to-1 / broadcast / Moobidesk) | Top-level view toggle, swaps preview pane | broadcast.md / moobidesk-inbox.md |
-| Integration click-outs | `handleButtonClick()` branches | integrations.md |
-| Embedded Moobidesk inbox | `.moobidesk-view` + `switchStage()` | moobidesk-inbox.md |
-| WhatsApp Flow form | `FLOW_SCREENS` + overlay HTML | architecture.md |
-| Companion pages | Separate HTML files in same folder | integrations.md |
-
-## Style and posture
-
-The demo is a **sales asset**, not engineering documentation. That means:
-
-- **Show the channel mechanics, not the implementation.** Audiences care that "this is a Utility template that fires when the credit decisioning engine returns an approved status" — they don't care about the API endpoint. Lead with business events.
-- **Use real-looking data.** Believable reference IDs (`CC-2026-04158`, `PL-2026-00742`), last-4-only card numbers, local currency formatting, locale-appropriate dates. Lazy placeholders (`[Customer Name]`, `XXX-XXX`) kill the spell.
-- **Button labels stay in the patron's voice.** Every CTA inside a WhatsApp template must read like something the customer would tap — "Speak to Agent", "Pay Now", "RSVP", "View Order". Operator-side language ("Open Console", "Switch to Inbox", "Open Host View") inside a template bubble immediately breaks the spell — patrons never see those words on their phones. Operator affordances belong on the orchestrator's main send button or the left control panel, not inside the phone preview.
-- **Keep WhatsApp chrome pixel-authentic** — see the mandatory list below.
-- **Keep Moobidesk chrome authentic too.** If the demo includes an embedded Moobidesk stage, the visual ground truth is `assets/moobidesk-inbox-2026-04.png` — **view this PNG before writing any Moobidesk markup**. The screenshot encodes pixel-level layout, spacing, icon choices, and font weights that no prose description can fully capture. The text in `references/moobidesk-inbox.md` covers the semantics (when to use which colour, which interactions matter for the pitch) but the PNG is what tells you how it actually looks. You need both.
-- **Don't overdesign the left panel.** It's a control surface, not a brochure. Step cards with status pills, category tags, trigger labels. Resist adding charts or decorative elements that compete with the chat preview.
-
-## WhatsApp chrome — mandatory authenticity checklist
-
-The starter template implements all of these. Do not regress them when re-skinning.
-
-### Phone shell (required for 1-to-1 mode)
-- Dark phone shell with correct border-radius (~44px corners), subtle border, box-shadow giving depth.
-- Dynamic Island / notch rendered as a dark pill at top-center, z-index above status bar.
-- Home indicator bar at bottom (thin pill, ~130px wide, rgba white, centered in a dark strip).
-
-### Status bar
-- Background matches the WA header colour (`#025144` — the teal dark edge, not the main teal).
-- Left: live clock (update every 10s via `setInterval`). Right: signal bars + WiFi + battery icons in SVG.
-- Height 52px with content aligned to bottom-edge (simulates notch safe-area).
-
-### WA navigation bar (topbar)
-- Back chevron (`‹`) + circular business avatar (initials, white bg, brand-primary text) + business name + verified badge + subtitle "Business Account · Verified" + three right-side icons (video, phone, vertical-dots) all in SVG.
-- Verified badge: small `#53bdeb` teal circle with white checkmark SVG inside — NOT a Unicode ✓.
-- Background: `#008069` (WA teal, slightly lighter than header edge).
-
-### Chat area / wallpaper
-- `background-color: #efeae2` (the real WA beige).
-- `background-image`: SVG tile of the authentic leaf/petal pattern at ~35% opacity in `#c8bfb0`. Do not use a generic diamond grid.
-- Custom scrollbar: 4px wide, transparent track, semi-transparent dark thumb.
-
-### Message bubbles
-- **Incoming (business)**: white (`#ffffff`) bg, `border-top-left-radius: 2px`, CSS triangle tail top-left using `::before` (`border-top: 8px solid #fff; border-left: 8px solid transparent`).
-- **Outgoing (customer)**: WA green (`#d9fdd3`) bg, `border-top-right-radius: 2px`, CSS triangle tail top-right.
-- Bottom padding `22px` on both to make room for the absolute-positioned meta row.
-- **Meta row**: `position:absolute; bottom:5px; right:9px` — time string + tick glyphs.
-- **Ticks**: use `✓✓` characters styled via CSS. Grey (`#667781`) for delivered, blue (`#53bdeb`) for read. Do NOT use emoji or images.
-- **Sender name row** inside business bubble: brand-primary colour, bold, with verified badge icon.
-- `box-shadow: 0 1px 1px rgba(0,0,0,0.1)` on all bubbles.
-- Message animation: `opacity 0 → 1`, `translateY(6px → 0)`, 0.18s ease-out.
-- Max bubble width: leave `padding-right: 48px` (in-wrap) / `padding-left: 48px` (out-wrap) to match WA proportions.
-
-### CTA buttons
-- **Rendered as a SEPARATE block** (`wa-cta-block`) appended below the bubble, NOT inside it. This matches WA Business template layout exactly.
-- White background (same as incoming bubble), `border-radius: 0 0 8px 8px`.
-- Each button: `border-top: 1px solid #e0e0e0`, link-blue text (`#027eb5`), centered, 13px bold.
-- URL-type buttons get an external-link SVG icon; reply buttons get no icon.
-- **Labels in the patron's voice only.** "Speak to Agent" ✓, "Pay Now" ✓, "View Order" ✓. "Open Console" ✗, "Switch View" ✗, "Open Inbox" ✗. The rule: would the customer tap this label without confusion? If no, it doesn't belong here — move it to the orchestrator's main send button.
-
-### Typing indicator
-- Sits in DOM as a persistent node, shown/hidden via `.show` class — not created/destroyed on each step.
-- Three bouncing dots (7px circles, `#b0bec5`) with staggered vertical animation.
-- Housed inside a white bubble (incoming shape) with the tail.
-- Positioned via `wa-typing-wrap.in` wrapper with matching padding.
-
-### WhatsApp Flow overlay
-- Full-pane scrim (`rgba(0,0,0,0.55)`), bottom-sheet slides up with `cubic-bezier(0.32,0.72,0,1)`.
-- Sheet has: drag handle pill at top, header with brand icon + title + close `×`, segmented progress bars (not dots — WA Flows uses bars), scrollable body, sticky footer with Back/Continue/Submit.
-- Progress bars: active = `#008069`, done = `#4caf50`, inactive = `#e0e0e0`.
-
-### Input bar
-- Decorative only (not functional). `background: #f0f2f5`. Emoji icon on left, rounded pill with "Message" placeholder + attach icon inside, circular teal send FAB on right.
-- This makes the phone feel inhabited, not hollow.
-
-### SMS OTP bubble
-- Yellow-tinted (`#fffde7`), left border `3px solid #f9a825`, `border-radius: 0 8px 8px 8px` (no tail).
-- Header label "📱 SMS — separate channel · 8x8 Verify API" in amber bold.
-- OTP body in monospace.
-- This differentiation is part of the pitch — it signals multi-channel orchestration, not a WA message.
-
-## What NOT to do
-
-- Don't use external CSS frameworks, build tools, or npm packages. Single file, browser-openable, period.
-- Don't render CTA buttons inside the message bubble div. They must be a separate sibling block — this is the correct WA Business template structure.
-- Don't use Unicode ticks (✓) as plain text styled with `color`. Use the glyph inside a `.tick` / `.tick.read` span so grey/blue state can be toggled.
-- Don't skip the phone shell. A raw chat pane on a white background looks like a web app, not WhatsApp. The shell is non-negotiable for 1-to-1 mode.
-- Don't use a generic grid or diamond tile for the wallpaper. Use the SVG leaf/petal pattern from the starter template.
-- Don't fake the WhatsApp green styling for SMS OTPs. They get the yellow `#fffde7` treatment.
-- Don't invent regulatory claims. If the SG market shows Singpass, that's because MAS banned SMS OTP for banking.
-- Don't write CSS or JS in separate files. The demo must travel as one file.
-- Don't half-recreate Moobidesk. If you embed it, go faithful.
-- Don't put operator-side controls inside WhatsApp template CTAs. "Open Inbox", "Switch View", "Open [Tool] Console" — these are orchestrator-side actions and belong on the main send button or left control panel, not in the phone preview. Patrons never see those labels on their actual phones, so they shouldn't see them in your demo either.
+| Vertical journey | `DEMO_DATA[market].steps` | verticals.md |
+| Mode toggle | Top-level view + preview pane | broadcast.md / converse-inbox.md |
+| Click-outs | `handleButtonClick()` branches | integrations.md |
+| Embedded 8x8 Converse | `.moobidesk-view` + `switchStage()` | converse-inbox.md |
+| WhatsApp Flow | `FLOW_SCREENS` + overlay | architecture.md |
+| Companion pages | Separate HTML files | integrations.md |
 
 ## References
 
-Read these before scaffolding a new demo:
 - `references/architecture.md` — `DEMO_DATA` shape, step types, state machine, button handler patterns
 - `references/verticals.md` — proven step sequences for banking, retail, insurance, telco, healthcare, logistics
 - `references/broadcast.md` — 1-to-many campaign mode (recipient list + delivery dashboard)
-- `references/moobidesk-inbox.md` — embedded Moobidesk agent console (3-column inbox recreation, reply scenarios, smart-reply chips, composer)
-- `references/integrations.md` — Moobidesk click-out handoff, MockPass/Singpass, 8x8 Verify OTP, custom URL patterns
+- `references/converse-inbox.md` — embedded 8x8 Converse agent console (3-column inbox, reply scenarios, smart-reply chips, composer). Formerly Moobidesk.
+- `references/integrations.md` — handoff snippets, MockPass/Singpass, 8x8 Verify OTP, custom URLs
+- `references/whatsapp-chrome.md` — pixel-authentic WA chrome spec (mandatory before re-skin)
+- `references/qa-checks.md` — mandatory mechanical verification scripts + common failure modes
+- `references/guardrails.md` — full posture set, what-NOT-to-do list, regulatory carve-outs
+- `references/asset-mirrors.md` — GitHub mirror URLs + fallback ladder when local assets missing
 
-Assets:
+## Assets
+
 - `assets/starter-template.html` — fork point for new demos (working out-of-the-box)
 - `assets/companion-page-template.html` — base for verify.html / reschedule.html / etc.
-
----
-
-## Appendix: Asset mirrors
-
-The files referenced throughout this skill (`assets/...`, `references/...`) ship locally alongside SKILL.md and should be available at every invocation. As insurance against missing or corrupted local assets, the canonical versions are mirrored at the URLs below. If a local `view` call fails, fall back to fetching the raw URL.
-
-| Local path | Mirror URL |
-|---|---|
-| `assets/starter-template.html` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/assets/starter-template.html` |
-| `assets/companion-page-template.html` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/assets/companion-page-template.html` |
-| `assets/moobidesk-inbox-2026-04.png` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/assets/moobidesk-inbox-2026-04.png` |
-| `references/architecture.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/architecture.md` |
-| `references/broadcast.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/broadcast.md` |
-| `references/integrations.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/integrations.md` |
-| `references/moobidesk-inbox.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/moobidesk-inbox.md` |
-| `references/verticals.md` | `https://raw.githubusercontent.com/harrism04/claude-skills-public/main/whatsapp-demo-prototype/references/verticals.md` |
-
-The PNG is binary — if local `view` fails, `view` against the raw URL works the same way (the URL serves `Content-Type: image/png`). Markdown and HTML files can be read via `web_fetch`.
-
-Mirror is maintained by the skill owner. Treat local files as canonical; only fall back when local access fails.
+- `assets/moobidesk-inbox-2026-04.png` — visual ground truth for embedded 8x8 Converse (filename retained from pre-rebrand; view this BEFORE writing Converse markup; details in `references/guardrails.md`)

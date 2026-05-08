@@ -23,9 +23,9 @@ The body is a flex container with two children:
 
 Don't change these widths casually. 420px is wide enough for step cards with category tags + trigger labels but narrow enough that the chat preview gets the visual weight.
 
-## Full-viewport swap (embedded Moobidesk mode)
+## Full-viewport swap (embedded 8x8 Converse mode)
 
-For demos that include an embedded Moobidesk stage, wrap the two-pane layout in `.workflow-view` and add a sibling `.moobidesk-view` that occupies the full viewport. A `switchStage(stage)` function toggles `display: none` between them. See `references/moobidesk-inbox.md` for layout and styling.
+For demos that include an embedded 8x8 Converse stage (formerly Moobidesk), wrap the two-pane layout in `.workflow-view` and add a sibling `.moobidesk-view` (class name retained for backwards compat) that occupies the full viewport. A `switchStage(stage)` function toggles `display: none` between them. See `references/converse-inbox.md` for layout and styling.
 
 ## CSS token system
 
@@ -46,7 +46,7 @@ All branding lives in `:root` CSS variables. Re-skinning is a 4-line edit:
 
 Use the WhatsApp tokens for chat chrome (header, message bubbles, send button) and brand tokens for the control panel header, step card accents, customer avatar.
 
-If the demo includes an embedded Moobidesk stage, add the Moobidesk tokens too — see `references/moobidesk-inbox.md`.
+If the demo includes an embedded 8x8 Converse stage, add the Converse tokens (`--cv-*`) too — see `references/converse-inbox.md`.
 
 ## DEMO_DATA shape
 
@@ -151,7 +151,7 @@ Renders as a centered green pill (like "Today" date dividers, but green for succ
 
 ### `agent_message` — outbound from a live agent (optional)
 
-Use after a Moobidesk handoff. Renders as an incoming bubble but with an agent avatar and "Agent · <name>" header instead of the business name.
+Use after a Converse handoff. Renders as an incoming bubble but with an agent avatar and "Agent · <name>" header instead of the business name.
 
 ```javascript
 {
@@ -159,12 +159,12 @@ Use after a Moobidesk handoff. Renders as an incoming bubble but with an agent a
   title: "Agent Greeting",
   type: "agent_message",
   agentName: "Priya",
-  trigger: "Conversation routed to Tier-1 agent in Moobidesk",
+  trigger: "Conversation routed to Tier-1 agent in Converse",
   preview: "Hi Sarah, this is Priya from Card Services..."
 }
 ```
 
-Add this branch to `sendNext()` if the demo needs it — it's not in the starter template by default. If the demo uses the embedded Moobidesk mode, agent replies live inside the Moobidesk view instead — see `references/moobidesk-inbox.md`.
+Add this branch to `sendNext()` if the demo needs it — it's not in the starter template by default. If the demo uses the embedded Converse mode, agent replies live inside the Converse view instead — see `references/converse-inbox.md`.
 
 ## State machine
 
@@ -188,7 +188,7 @@ Three functions are the entire control flow:
 
 This is small on purpose. Don't add a router or state library.
 
-For demos with stage-based navigation (broadcast or embedded Moobidesk), add a `currentStage` global and a `switchStage(stage)` function that toggles view visibility — see `references/moobidesk-inbox.md` for the pattern.
+For demos with stage-based navigation (broadcast or embedded Converse), add a `currentStage` global and a `switchStage(stage)` function that toggles view visibility — see `references/converse-inbox.md` for the pattern.
 
 ## Button click flow
 
@@ -205,7 +205,7 @@ if (buttonText.startsWith('Verify Identity')) {
   return;
 }
 if (buttonText === 'Speak to Agent') {
-  // either: transform send button into "Open Moobidesk Console" (click-out)
+  // either: transform send button into "Open Converse Console" (click-out)
   // or:     switchStage('moobidesk') to enter the embedded inbox
   ...
 }
@@ -243,4 +243,4 @@ Templates and SMS messages get an 800ms typing indicator before they appear. Cus
 - **Button label with apostrophes or double quotes** — escaped wrong in `onclick` attribute. The starter template uses `b.replace(/'/g, "\\'")` but if you add new escaping, double-check.
 - **Multi-market step arrays of different lengths** — `currentStep` becomes invalid after a market switch. The template resets it to 0 on switch, so step counts can differ, but visually it's confusing. Keep step counts equal across markets when possible.
 - **`triggersFlow: true` but `FLOW_SCREENS[market]` is undefined** — overlay opens empty. Either define screens for both markets or remove the trigger.
-- **Stage swap leaves stale state** — when `switchStage()` enters the Moobidesk view, reset or refresh the conversations list (`renderMoobiConvList()`); don't assume the user hasn't already clicked around.
+- **Stage swap leaves stale state** — when `switchStage()` enters the Converse view, reset or refresh the conversations list (`renderMoobiConvList()` — function name kept for backwards compat); don't assume the user hasn't already clicked around.

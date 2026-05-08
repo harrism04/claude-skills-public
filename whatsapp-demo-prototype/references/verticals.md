@@ -20,7 +20,7 @@ The default banking acquisition pattern. Use for any "acquire a card / loan / ac
 | 6 | Application Approved | template | UTILITY | Credit decisioning engine approves |
 | 7 | Card Activation | template | UTILITY | Customer activates card |
 | 8 | Payment Reminder | template | UTILITY | Billing system detects upcoming due date |
-| 9 | Service Hub | template | UTILITY | Customer opens service menu (Speak to Agent → Moobidesk) |
+| 9 | Service Hub | template | UTILITY | Customer opens service menu (Speak to Agent → Converse) |
 
 **Variants**: For loans, swap step 1 to "Loan Offer", step 6 to "Loan Approved with rate", step 8 to "Repayment Reminder". For deposit accounts, drop credit decisioning and add an "Initial Deposit Confirmation" step.
 
@@ -37,21 +37,21 @@ For demos focused on existing customers (account inquiries, transaction alerts, 
 | 3 | Dispute Initiated | template | UTILITY | Fraud workflow opens case |
 | 4 | Card Block Confirmation | template | UTILITY | Card status updated to BLOCKED |
 | 5 | Replacement Card Dispatched | template | UTILITY | Replacement card workflow triggers |
-| 6 | Speak to Agent → Moobidesk | template | SERVICE | Customer requests human assistance |
+| 6 | Speak to Agent → Converse | template | SERVICE | Customer requests human assistance |
 
 ---
 
 ## Banking — CRM Bulk Reminders (ops-facing, broadcast + inbox)
 
-For demos where the audience is the collections / ops team, not the customer. Typically pairs broadcast mode with an embedded Moobidesk stage.
+For demos where the audience is the collections / ops team, not the customer. Typically pairs broadcast mode with an embedded 8x8 Converse stage (formerly Moobidesk).
 
 | # | Stage | Mode | Purpose |
 |---|---|---|---|
 | 1 | Today's Batch | workflow (left: ops console, right: WhatsApp preview) | Review segmented recipient list + template params |
 | 2 | Campaign Live | broadcast (recipient table with per-row status animation) | Fire the bulk send; watch delivery/read/reply states |
-| 3 | Reply Inbox | embedded Moobidesk | Triage inbound replies with auto-categorisation + smart-reply chips |
+| 3 | Reply Inbox | embedded Converse | Triage inbound replies with auto-categorisation + smart-reply chips |
 
-See `references/moobidesk-inbox.md` for the stage 3 pattern and `references/broadcast.md` for stage 2.
+See `references/converse-inbox.md` for the stage 3 pattern and `references/broadcast.md` for stage 2.
 
 ---
 
